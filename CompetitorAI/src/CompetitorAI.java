@@ -78,25 +78,15 @@ public class CompetitorAI implements AI {
         //Can't see anything, so explore
         if(state.getNeutralHats().size() == 0
                 && state.getEnemyHats().size() == 0){
+            if(wizard.getLocation().getX() == explorePoints.get(wizardExploreIndex).getX() &&
+                    wizard.getLocation().getY() == explorePoints.get(wizardExploreIndex).getY()){
+                wizardExploreIndex++;
+                wizardPath = null;
+            }
             if(wizardPath == null){
-                if(wizard.getLocation().getX() == explorePoints.get(wizardExploreIndex).getX() &&
-                   wizard.getLocation().getY() == explorePoints.get(wizardExploreIndex).getY()){
-                    wizardExploreIndex++;
-                }
                 if(wizardExploreIndex >= explorePoints.size()) wizardExploreIndex = 0;
                 wizardPath = state.getPath(wizard, explorePoints.get(wizardExploreIndex), pathWeight);
             }
-            if(wizard.canMove(wizard.getDirection(wizardPath)))
-                wizard.move(wizard.getDirection(wizardPath));
-            else if(!wizardPath.get(0).isNaturalWall()){
-                for(Actor a : wizardPath.get(0).getActors()){
-                    if(a instanceof Blocker && a.getTeam() != myTeam){
-                        wizard.castMagic(a);
-                    }
-                }
-            }
-            else
-                wizardPath = null;
         }
 
         //Strat 1 - low pts, low mana
@@ -105,8 +95,10 @@ public class CompetitorAI implements AI {
                 Actor closest = this.findClosest(wizard, state.getNeutralHats());
                 double dist = this.dist(wizard, closest);
                 if(dist == 1.0){
-                    if(wizard.canCast(closest))
+                    if(wizard.canCast(closest)){
                         wizard.castMagic(closest);
+                        return;
+                    }
                 }
                 else{
                     wizardPath = state.getPath(wizard,
@@ -118,8 +110,10 @@ public class CompetitorAI implements AI {
                 Actor closest = this.findClosest(wizard, state.getEnemyHats());
                 double dist = this.dist(wizard, closest);
                 if(dist == 1.0){
-                    if(wizard.canCast(closest))
+                    if(wizard.canCast(closest)){
                         wizard.castMagic(closest);
+                        return;
+                    }
                 }
                 else{
                     wizardPath = state.getPath(wizard,
@@ -143,6 +137,18 @@ public class CompetitorAI implements AI {
         {
 
         }
+
+        if(wizard.canMove(wizard.getDirection(wizardPath)))
+            wizard.move(wizard.getDirection(wizardPath));
+        else if(!wizard.getLocation().getNearby(wizard.getDirection(wizardPath)).isNaturalWall()){
+            for(Actor a : wizard.getLocation().getNearby(wizard.getDirection(wizardPath)).getActors()){
+                if(a instanceof Blocker && a.getTeam() != myTeam){
+                    wizard.castMagic(a);
+                }
+            }
+        }
+        else
+            wizardPath = null;
 	}
 	
 	/**
