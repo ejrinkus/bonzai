@@ -1,8 +1,8 @@
 <project name = "CompetitorAI" default = "build">
 	<import file = "common.xml"/>
 	
-	<property name = "ai" value = "CompetitorAI" />
-	<property name = "team" value = "My Team" />
+	<property name = "ai" value = "Lil_T" />
+	<property name = "team" value = "Delta-Tree" />
 
 	<!-- Clean Target(s) -->
 	<target name = "clean">

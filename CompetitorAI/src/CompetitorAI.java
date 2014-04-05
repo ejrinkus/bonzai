@@ -95,7 +95,7 @@ public class CompetitorAI implements AI {
             if(state.getNeutralHats().size() > 0){
                 Actor closest = this.findClosest(wizard, state.getNeutralHats());
                 double dist = this.dist(wizard, closest);
-                if(dist == 1.0){
+                if(dist <= 1.0){
                     if(wizard.canCast(closest)){
                         wizard.castMagic(closest);
                         return;
@@ -110,7 +110,7 @@ public class CompetitorAI implements AI {
             else if(state.getEnemyHats().size() > 0){
                 Actor closest = this.findClosest(wizard, state.getEnemyHats());
                 double dist = this.dist(wizard, closest);
-                if(dist == 1.0){
+                if(dist <= 1.0){
                     if(wizard.canCast(closest)){
                         wizard.castMagic(closest);
                         return;
@@ -271,24 +271,13 @@ public class CompetitorAI implements AI {
 	 * @param state
 	 */
 	private void moveHats(AIGameState state) {
+
 		ArrayList<Node> hatPaths = new ArrayList<Node>();
 		//ArrayList<Actor> enemyActors = new ArrayList<Actor>();
 		state.getEnemyActors();
 		for(Hat hat : state.getMyHats()) {
-			while(hat.canAct()){
-				hatPaths = state.getPath(hat, state.getBase(state.getMyTeamNumber()), pathWeight);
-				for(Node n : hatPaths){ //loops through all nodes through given path										
-					if(n.isVisible() && n.isPassable()){
-						hat.move(hatPaths);
-						return;
-					}
-					else{
-						//find a new path
-						//hatPaths = state.getPath(hat, state.getBase(state.getMyTeamNumber()), pathWeight);
-						return;
-					}
-				}
-			}
+			hatPaths = state.getPath(hat, state.getBase(state.getMyTeamNumber()), pathWeight);
+		    hat.move(state.getDirection(hatPaths));
 		}
 	}
 
