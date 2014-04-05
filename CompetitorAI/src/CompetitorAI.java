@@ -150,11 +150,25 @@ public class CompetitorAI implements AI {
 	 * @param state
 	 */
 	private void moveBlockers(AIGameState state) {
+		
+		ArrayList<Wizard> enemyWiz = state.getEnemyWizards();
+		final int NEAREST_DIST = 3;
+		
+		
 		for(Blocker blocker : state.getMyBlockers()) {
-			if(Math.random() > .5) { 	//50% chance to use block()
-				blocker.block();
-			} else {					//50% chance to use unBlock()
+			
+			if( dist(blocker, state.getMyWizard()) < NEAREST_DIST){
 				blocker.unBlock();
+				continue;
+			}
+			
+			Wizard precious = (Wizard) findClosest(blocker, enemyWiz);
+			
+			int wizdist = (int) Math.floor( dist( blocker, precious ) );
+			if( wizdist < NEAREST_DIST ) {
+				blocker.block();
+			} else {
+				state.getPath(blocker, state.getMyBase(), pathWeight);
 			}
 		}
 	}
@@ -209,6 +223,7 @@ public class CompetitorAI implements AI {
 				
 			}
 			
+
 			//move randomly and see what's up
 			scout.doubleMove((int)(Math.random()*4), (int)(Math.random()*4));
 
