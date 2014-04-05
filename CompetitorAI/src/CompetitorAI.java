@@ -9,12 +9,17 @@ public class CompetitorAI implements AI {
     private ArrayList<Node> explorePoints;
     private int wizardExploreIndex;
 	
+	private Node mapGuess[][];
+	private Node bases[];
+	
 	/**
 	 * You must have this function, all of the other functions in 
 	 * this class are optional.
 	 */
 	@Override
 	public void takeTurn(AIGameState state) {
+		updateGuess(state);
+		
 		if(firstTurn) {
             explorePoints = new ArrayList<Node>();
             explorePoints.add(state.getNode(state.getWidth()/2, state.getHeight()/2));
@@ -27,6 +32,7 @@ public class CompetitorAI implements AI {
 			firstTurn = false;
 		}
 		
+
 		this.wizardBrain(state);
 		this.moveBlockers(state);
 		this.moveCleaners(state);
@@ -42,6 +48,13 @@ public class CompetitorAI implements AI {
 		for(Actor a : state.getMyActors()) {
 			a.shout("THIS. IS. HOGWAARRTTSS!!!!"); //Shout "Go Team!" for the first turn
 		}
+		
+		
+		//setup the map-saving
+		mapGuess = new Node[state.getWidth()][state.getHeight()];
+		bases = new Node[state.getNumberOfPlayers()];
+		//save all spaces we can see at the start
+
 	}
 	
 	/**
@@ -152,5 +165,19 @@ public class CompetitorAI implements AI {
 		for(Hat hat : state.getMyHats()) {
 			//TODO: Your hat should probably do something
 		}
+	}
+	
+	private void updateGuess(AIGameState state) {
+		
+		Node cur;
+		
+		for( int i=0; i<state.getWidth(); i++ )
+			for(int j=0; j<state.getHeight(); j++ ){
+				cur = state.getNode(i, j);
+				if( ! cur.isVisible() ) continue;
+				
+				mapGuess[cur.getX()][cur.getY()] = cur;
+			}
+		
 	}
 }
