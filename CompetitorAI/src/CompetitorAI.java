@@ -22,11 +22,15 @@ public class CompetitorAI implements AI {
 		
 		if(firstTurn) {
             explorePoints = new ArrayList<Node>();
-            explorePoints.add(state.getNode(state.getWidth()/2, state.getHeight()/2));
-            explorePoints.add(state.getNode(state.getWidth()/2, 0));
-            explorePoints.add(state.getNode(0, state.getHeight()/2));
-            explorePoints.add(state.getNode(state.getWidth()/2, state.getHeight()-1));
-            explorePoints.add(state.getNode(state.getWidth()-1, state.getHeight()/2));
+            int size = state.getNumberOfPlayers();
+            for(int i = 1; i <= size; i++){
+                explorePoints.add(state.getBase(i));
+            }
+            explorePoints.add(state.getNode(state.getWidth() / 2, state.getHeight() / 2));
+            explorePoints.add(state.getNode(state.getWidth() / 2, 0));
+            explorePoints.add(state.getNode(0, state.getHeight() / 2));
+            explorePoints.add(state.getNode(state.getWidth() / 2, state.getHeight() - 1));
+            explorePoints.add(state.getNode(state.getWidth() - 1, state.getHeight() / 2));
             wizardExploreIndex = 0;
 			takeFirstTurn(state);
 			firstTurn = false;
@@ -80,27 +84,38 @@ public class CompetitorAI implements AI {
             else
                 wizardPath = null;
         }
-		//Wizard Pathfinding
-//		int moveDirection = wizard.getDirection(state.getNode(1, 1), pathWeight);
-//		if(moveDirection != -1) {
-//			if(wizard.canMove(moveDirection)) {
-//				wizard.move(moveDirection);
-//				wizard.shout("Moving");
-//			}
-//		}
-		
-		//Iterate through all visible enemy actors
-//		for(Actor e : state.getEnemyActors()) {
-//			if(wizard.canCast( e)) {
-//				wizard.castMagic(e);
-//			}
-//		}
-		
-//		for(Actor e : state.getNeutralActors()) {
-//			if(wizard.canCast(e)) {
-//				wizard.castMagic(e);
-//			}
-//		}
+
+        //Strat 1 - low pts, low mana
+        {
+            if(state.getNeutralHats().size() > 0){
+                Actor closest = this.findClosest(wizard, state.getNeutralHats());
+                double dist = this.dist(wizard, closest);
+                if(dist == 1.0){
+                    if(wizard.canCast(closest))
+                        wizard.castMagic(closest);
+                }
+                else{
+                    wizardPath = state.getPath(wizard,
+                            closest.getLocation(),
+                            pathWeight);
+                }
+            }
+        }
+
+        //Strat 2 - high pts, low mana
+        {
+
+        }
+
+        //Strat 3 - low pts, high mana
+        {
+
+        }
+
+        //Strat 4 - high pts, high mana
+        {
+
+        }
 	}
 	
 	/**
@@ -180,4 +195,25 @@ public class CompetitorAI implements AI {
 			}
 		
 	}
+
+    private Actor findClosest(Actor start, ArrayList<? extends Actor> list){
+        double minDist = -1;
+        double temp = 0;
+        Actor closest = null;
+        for(Actor a : list){
+            temp = dist(start, a);
+            if(closest == null || temp < minDist){
+                closest = a;
+                minDist = temp;
+            }
+        }
+        return closest;
+    }
+
+    private double dist(Actor a, Actor b){
+        int x = Math.abs(a.getLocation().getX() - b.getLocation().getX());
+        int y = Math.abs(a.getLocation().getY() - b.getLocation().getY());
+        return Math.sqrt((x * x) + (y * y));
+    }
+
 }
