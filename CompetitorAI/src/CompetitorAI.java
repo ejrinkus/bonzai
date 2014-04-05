@@ -6,16 +6,22 @@ public class CompetitorAI implements AI {
 	private WeightComparator pathWeight = new CompetitorWeightComparator();
 	private boolean firstTurn = true;
 	
+	private Node mapGuess[][];
+	private Node bases[];
+	
 	/**
 	 * You must have this function, all of the other functions in 
 	 * this class are optional.
 	 */
 	@Override
 	public void takeTurn(AIGameState state) {
+		updateGuess(state);
+		
 		if(firstTurn) {
 			takeFirstTurn(state);
 			firstTurn = false;
 		}
+		
 		
 		//Get all of your actors
 		for(Actor a : state.getMyActors()) {
@@ -42,6 +48,7 @@ public class CompetitorAI implements AI {
 			}
 		}
 		
+		
 		this.moveWizard(state);
 		this.moveBlockers(state);
 		this.moveCleaners(state);
@@ -57,6 +64,13 @@ public class CompetitorAI implements AI {
 		for(Actor a : state.getMyActors()) {
 			a.shout("Go Team!"); //Shout "Go Team!" for the first turn
 		}
+		
+		
+		//setup the map-saving
+		mapGuess = new Node[state.getWidth()][state.getHeight()];
+		bases = new Node[state.getNumberOfPlayers()];
+		//save all spaces we can see at the start
+
 	}
 	
 	/**
@@ -151,5 +165,19 @@ public class CompetitorAI implements AI {
 		for(Hat hat : state.getMyHats()) {
 			//TODO: Your hat should probably do something
 		}
+	}
+	
+	private void updateGuess(AIGameState state) {
+		
+		Node cur;
+		
+		for( int i=0; i<state.getWidth(); i++ )
+			for(int j=0; j<state.getHeight(); j++ ){
+				cur = state.getNode(i, j);
+				if( ! cur.isVisible() ) continue;
+				
+				mapGuess[cur.getX()][cur.getY()] = cur;
+			}
+		
 	}
 }
