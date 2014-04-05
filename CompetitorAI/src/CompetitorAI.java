@@ -7,7 +7,7 @@ public class CompetitorAI implements AI {
 	private boolean firstTurn = true;
     private ArrayList<Node> wizardPath;
     private ArrayList<Node> explorePoints;
-    private int exploreIndex;
+    private int wizardExploreIndex;
 	
 	/**
 	 * You must have this function, all of the other functions in 
@@ -22,7 +22,7 @@ public class CompetitorAI implements AI {
             explorePoints.add(state.getNode(0, state.getHeight()/2));
             explorePoints.add(state.getNode(state.getWidth()/2, state.getHeight()-1));
             explorePoints.add(state.getNode(state.getWidth()-1, state.getHeight()/2));
-            exploreIndex = 0;
+            wizardExploreIndex = 0;
 			takeFirstTurn(state);
 			firstTurn = false;
 		}
@@ -52,21 +52,21 @@ public class CompetitorAI implements AI {
 		Wizard wizard = state.getMyWizard();
 
         //Can't see anything, so explore
-        if(state.getNeutralActors().size() == 0){
+        if(state.getNeutralActors().size() == 0
+                && state.getEnemyActors().size() == 0){
             if(wizardPath == null){
-                if(wizard.getLocation().getX() == explorePoints.get(exploreIndex).getX() &&
-                   wizard.getLocation().getY() == explorePoints.get(exploreIndex).getY()){
-                    exploreIndex++;
+                if(wizard.getLocation().getX() == explorePoints.get(wizardExploreIndex).getX() &&
+                   wizard.getLocation().getY() == explorePoints.get(wizardExploreIndex).getY()){
+                    wizardExploreIndex++;
                 }
-                if(exploreIndex >= explorePoints.size()) exploreIndex = 0;
-                wizardPath = state.getPath(wizard, explorePoints.get(exploreIndex), pathWeight);
+                if(wizardExploreIndex >= explorePoints.size()) wizardExploreIndex = 0;
+                wizardPath = state.getPath(wizard, explorePoints.get(wizardExploreIndex), pathWeight);
             }
             if(wizard.canMove(wizard.getDirection(wizardPath)))
                 wizard.move(wizard.getDirection(wizardPath));
             else
                 wizardPath = null;
         }
-		
 		//Wizard Pathfinding
 //		int moveDirection = wizard.getDirection(state.getNode(1, 1), pathWeight);
 //		if(moveDirection != -1) {
