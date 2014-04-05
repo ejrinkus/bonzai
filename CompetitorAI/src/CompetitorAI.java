@@ -75,72 +75,75 @@ public class CompetitorAI implements AI {
 	private void wizardBrain(AIGameState state) {
 		Wizard wizard = state.getMyWizard();
 
-		//Can't see anything, so explore
-		if(state.getNeutralHats().size() == 0
-				&& state.getEnemyHats().size() == 0){
-			if(wizardPath == null){
-				if(wizard.getLocation().getX() == explorePoints.get(wizardExploreIndex).getX() &&
-						wizard.getLocation().getY() == explorePoints.get(wizardExploreIndex).getY()){
-					wizardExploreIndex++;
-				}
-				if(wizardExploreIndex >= explorePoints.size()) wizardExploreIndex = 0;
-				wizardPath = state.getPath(wizard, explorePoints.get(wizardExploreIndex), pathWeight);
-			}
-			if(wizard.canMove(wizard.getDirection(wizardPath)))
-				wizard.move(wizard.getDirection(wizardPath));
-			else if(!wizardPath.get(0).isNaturalWall()){
-				for(Actor a : wizardPath.get(0).getActors()){
-					if(a instanceof Blocker && a.getTeam() != myTeam){
-						wizard.castMagic(a);
-					}
-				}
-			}
-			else
-				wizardPath = null;
-		}
 
+        //Can't see anything, so explore
+        if(state.getNeutralHats().size() == 0
+                && state.getEnemyHats().size() == 0){
+            if(wizardPath == null){
+                if(wizard.getLocation().getX() == explorePoints.get(wizardExploreIndex).getX() &&
+                   wizard.getLocation().getY() == explorePoints.get(wizardExploreIndex).getY()){
+                    wizardExploreIndex++;
+                }
+                if(wizardExploreIndex >= explorePoints.size()) wizardExploreIndex = 0;
+                wizardPath = state.getPath(wizard, explorePoints.get(wizardExploreIndex), pathWeight);
+            }
+            if(wizard.canMove(wizard.getDirection(wizardPath)))
+                wizard.move(wizard.getDirection(wizardPath));
+            else if(!wizardPath.get(0).isNaturalWall()){
+                for(Actor a : wizardPath.get(0).getActors()){
+                    if(a instanceof Blocker && a.getTeam() != myTeam){
+                        wizard.castMagic(a);
+                    }
+                }
+            }
+            else
+                wizardPath = null;
+        }
 
-		Actor a = null;
-		Node b = a.getLocation();
+        //Strat 1 - low pts, low mana
+        {
+            if(state.getNeutralHats().size() > 0){
+                Actor closest = this.findClosest(wizard, state.getNeutralHats());
+                double dist = this.dist(wizard, closest);
+                if(dist == 1.0){
+                    if(wizard.canCast(closest))
+                        wizard.castMagic(closest);
+                }
+                else{
+                    wizardPath = state.getPath(wizard,
+                            closest.getLocation(),
+                            pathWeight);
+                }
+            }
+            else if(state.getEnemyHats().size() > 0){
+                Actor closest = this.findClosest(wizard, state.getEnemyHats());
+                double dist = this.dist(wizard, closest);
+                if(dist == 1.0){
+                    if(wizard.canCast(closest))
+                        wizard.castMagic(closest);
+                }
+                else{
+                    wizardPath = state.getPath(wizard,
+                            closest.getLocation(),
+                            pathWeight);
+                }
+            }
+        }
 
-		for( int i=0; i<4; i++ ){
-			for( Actor gg : b.getNearby(i).getActors() ){
+        //Strat 2 - high pts, low mana
+        {
 
-			}
+        }
 
-		}
+        //Strat 3 - low pts, high mana
+        {
 
-		//Strat 1 - low pts, low mana
-		{
-			if(state.getNeutralHats().size() > 0){
-				Actor closest = this.findClosest(wizard, state.getNeutralHats());
-				double dist = this.dist(wizard, closest);
-				if(dist == 1.0){
-					if(wizard.canCast(closest))
-						wizard.castMagic(closest);
-				}
-				else{
-					wizardPath = state.getPath(wizard,
-							closest.getLocation(),
-							pathWeight);
-				}
-			}
-		}
+        }
 
-		//Strat 2 - high pts, low mana
-		{
+        //Strat 4 - high pts, high mana
+        {
 
-		}
-
-		//Strat 3 - low pts, high mana
-		{
-
-		}
-
-		//Strat 4 - high pts, high mana
-		{
-
-		}
+        }
 	}
 
 	/**
