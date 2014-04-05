@@ -76,8 +76,8 @@ public class CompetitorAI implements AI {
 		Wizard wizard = state.getMyWizard();
 
         //Can't see anything, so explore
-        if(state.getNeutralActors().size() == 0
-                && state.getEnemyActors().size() == 0){
+        if(state.getNeutralHats().size() == 0
+                && state.getEnemyHats().size() == 0){
             if(wizardPath == null){
                 if(wizard.getLocation().getX() == explorePoints.get(wizardExploreIndex).getX() &&
                    wizard.getLocation().getY() == explorePoints.get(wizardExploreIndex).getY()){
@@ -88,6 +88,16 @@ public class CompetitorAI implements AI {
             }
             if(wizard.canMove(wizard.getDirection(wizardPath)))
                 wizard.move(wizard.getDirection(wizardPath));
+            else if(!wizardPath.get(0).isNaturalWall()){
+                for(Actor a : wizardPath.get(0).getActors()){
+                    if(a instanceof Blocker && a.getTeam() != myTeam){
+                        wizard.castMagic(a);
+                    }
+                    if(a instanceof Blocker && a.getTeam() == myTeam){
+                        ((Blocker) a).unBlock();
+                    }
+                }
+            }
             else
                 wizardPath = null;
         }
