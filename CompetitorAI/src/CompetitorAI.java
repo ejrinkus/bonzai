@@ -168,9 +168,10 @@ public class CompetitorAI implements AI {
 				blocker.unBlock();
 				continue;
 			}
-
-			if( enemyWiz != null ){
-				Wizard precious = (Wizard) findClosest(blocker, enemyWiz);
+			
+			Wizard precious = (Wizard) findClosest(blocker, enemyWiz);
+			if( precious != null ){
+				
 				int wizdist = (int) Math.floor( dist( blocker, precious ) );
 				if( wizdist < NEAREST_DIST ){
 					blocker.block();
