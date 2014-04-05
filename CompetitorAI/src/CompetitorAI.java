@@ -1,16 +1,22 @@
 import bonzai.api.*;
+
 import java.util.*;
 
 public class CompetitorAI implements AI {
 	
 	private WeightComparator pathWeight = new CompetitorWeightComparator();
 	private boolean firstTurn = true;
+
+	public static int myTeam = -1;
+	public static int scores[] = new int[4];
+
     private ArrayList<Node> wizardPath;
     private ArrayList<Node> explorePoints;
     private int wizardExploreIndex;
 	
 	private Node mapGuess[][];
 	private Node bases[];
+
 	
 	/**
 	 * You must have this function, all of the other functions in 
@@ -18,7 +24,7 @@ public class CompetitorAI implements AI {
 	 */
 	@Override
 	public void takeTurn(AIGameState state) {
-		updateGuess(state);
+		
 		
 		if(firstTurn) {
             explorePoints = new ArrayList<Node>();
@@ -36,7 +42,8 @@ public class CompetitorAI implements AI {
 			firstTurn = false;
 		}
 		
-
+		updateGuess(state);
+		
 		this.wizardBrain(state);
 		this.moveBlockers(state);
 		this.moveCleaners(state);
@@ -53,12 +60,12 @@ public class CompetitorAI implements AI {
 			a.shout("THIS. IS. HOGWAARRTTSS!!!!"); //Shout "Go Team!" for the first turn
 		}
 		
+		myTeam = state.getMyTeamNumber();
 		
 		//setup the map-saving
 		mapGuess = new Node[state.getWidth()][state.getHeight()];
 		bases = new Node[state.getNumberOfPlayers()];
 		//save all spaces we can see at the start
-
 	}
 	
 	/**
@@ -137,6 +144,8 @@ public class CompetitorAI implements AI {
 	 * @param state
 	 */
 	private void moveCleaners(AIGameState state) {
+		
+		
 		for(Cleaner cleaner : state.getMyCleaners()) {
 			int moveDirection = cleaner.getDirection(state.getNode(2, 2), pathWeight);
 			
@@ -155,6 +164,7 @@ public class CompetitorAI implements AI {
 					cleaner.sweep(enemyBlocker);
 				}
 			}
+			
 		}
 	}
 	
@@ -163,12 +173,49 @@ public class CompetitorAI implements AI {
 	 * @param state
 	 */
 	private void moveScouts(AIGameState state) {
+		
+		int numScouts = state.getMyScouts().size();
+		boolean firstScout = true;
+		Node set;
+		
 		for(Scout scout : state.getMyScouts()) {
-			if(Math.random() > .8) { //80% chance to move randomly
-				scout.doubleMove((int)(Math.random()*4), (int)(Math.random()*4));
-			} else { //20% chance to move closer to your base.
-				scout.doubleMove(state.getPath(scout, state.getMyBase(), pathWeight));
+			
+			if( firstScout ){
+				
+				//follow wizard so you can see people
+				scout.doubleMove(state.getPath(scout, state.getMyWizard().getLocation(), pathWeight));
+				
+				firstScout = false;
+				
 			}
+			
+			//move randomly and see what's up
+			scout.doubleMove((int)(Math.random()*4), (int)(Math.random()*4));
+
+
+		}
+	}
+	
+	private int getStrat(AIGameState state){
+		int count = 0;
+		int highscore = 0;
+		for(int i = 0; i < state.getNumberOfPlayers(); i++){
+			if(state.getPlayerScore(i) > highscore){
+				highscore = state.getPlayerScore(i);
+			}
+		}
+		
+		if(state.getPlayerScore(myTeam) >= highscore && state.getMyMana() > 400){
+			return 4;//we are the best so let's screw with people
+		}
+		else if(state.getPlayerScore(myTeam) <= highscore && state.getMyMana() > 400){
+			return 3; // low pts  high mana
+		}
+		else if(state.getPlayerScore(myTeam) > highscore && state.getMyMana() <= 400){
+			return 2; // high pts  low mana
+		}
+		else{
+			return 1; //low pts  low mana
 		}
 	}
 	
@@ -177,8 +224,24 @@ public class CompetitorAI implements AI {
 	 * @param state
 	 */
 	private void moveHats(AIGameState state) {
+		ArrayList<Node> hatPaths = new ArrayList<Node>();
+		//ArrayList<Actor> enemyActors = new ArrayList<Actor>();
+		state.getEnemyActors();
 		for(Hat hat : state.getMyHats()) {
-			//TODO: Your hat should probably do something
+			while(hat.canAct()){
+				hatPaths = state.getPath(hat, state.getBase(state.getMyTeamNumber()), pathWeight);
+				for(Node n : hatPaths){ //loops through all nodes through given path										
+					if(n.isVisible() && n.isPassable()){
+						hat.move(hatPaths);
+						return;
+					}
+					else{
+						//find a new path
+						//hatPaths = state.getPath(hat, state.getBase(state.getMyTeamNumber()), pathWeight);
+						return;
+					}
+				}
+			}
 		}
 	}
 	
@@ -189,7 +252,8 @@ public class CompetitorAI implements AI {
 		for( int i=0; i<state.getWidth(); i++ )
 			for(int j=0; j<state.getHeight(); j++ ){
 				cur = state.getNode(i, j);
-				if( ! cur.isVisible() ) continue;
+				
+				if( cur == null || !cur.isVisible() ) continue;
 				
 				mapGuess[cur.getX()][cur.getY()] = cur;
 			}
