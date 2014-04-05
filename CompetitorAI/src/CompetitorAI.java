@@ -5,6 +5,8 @@ public class CompetitorAI implements AI {
 	
 	private WeightComparator pathWeight = new CompetitorWeightComparator();
 	private boolean firstTurn = true;
+	public static int myTeam = -1;
+	public static int scores[] = new int[4];
 	
 	/**
 	 * You must have this function, all of the other functions in 
@@ -57,6 +59,8 @@ public class CompetitorAI implements AI {
 		for(Actor a : state.getMyActors()) {
 			a.shout("Go Team!"); //Shout "Go Team!" for the first turn
 		}
+		
+		myTeam = state.getMyTeamNumber();
 	}
 	
 	/**
@@ -134,6 +138,7 @@ public class CompetitorAI implements AI {
 	 * @param state
 	 */
 	private void moveScouts(AIGameState state) {
+		
 		for(Scout scout : state.getMyScouts()) {
 			if(Math.random() > .8) { //80% chance to move randomly
 				scout.doubleMove((int)(Math.random()*4), (int)(Math.random()*4));
@@ -143,13 +148,52 @@ public class CompetitorAI implements AI {
 		}
 	}
 	
+	private int getStrat(AIGameState state){
+		int count = 0;
+		int highscore = 0;
+		for(int i = 0; i < state.getNumberOfPlayers(); i++){
+			if(state.getPlayerScore(i) > highscore){
+				highscore = state.getPlayerScore(i);
+			}
+		}
+		
+		if(state.getPlayerScore(myTeam) >= highscore && state.getMyMana() > 400){
+			return 4;//we are the best so let's screw with people
+		}
+		else if(state.getPlayerScore(myTeam) <= highscore && state.getMyMana() > 400){
+			return 3; // low pts  high mana
+		}
+		else if(state.getPlayerScore(myTeam) > highscore && state.getMyMana() <= 400){
+			return 2; // high pts  low mana
+		}
+		else{
+			return 1; //low pts  low mana
+		}
+	}
+	
 	/**
 	 * Do something with your hats!!!
 	 * @param state
 	 */
 	private void moveHats(AIGameState state) {
+		ArrayList<Node> hatPaths = new ArrayList<Node>();
+		//ArrayList<Actor> enemyActors = new ArrayList<Actor>();
+		state.getEnemyActors();
 		for(Hat hat : state.getMyHats()) {
-			//TODO: Your hat should probably do something
+			while(hat.canAct()){
+				hatPaths = state.getPath(hat, state.getBase(state.getMyTeamNumber()), pathWeight);
+				for(Node n : hatPaths){ //loops through all nodes through given path										
+					if(n.isVisible() && n.isPassable()){
+						hat.move(hatPaths);
+						return;
+					}
+					else{
+						//find a new path
+						//hatPaths = state.getPath(hat, state.getBase(state.getMyTeamNumber()), pathWeight);
+						return;
+					}
+				}
+			}
 		}
 	}
 }
