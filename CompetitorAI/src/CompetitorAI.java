@@ -93,9 +93,6 @@ public class CompetitorAI implements AI {
                     if(a instanceof Blocker && a.getTeam() != myTeam){
                         wizard.castMagic(a);
                     }
-                    if(a instanceof Blocker && a.getTeam() == myTeam){
-                        ((Blocker) a).unBlock();
-                    }
                 }
             }
             else
@@ -106,6 +103,19 @@ public class CompetitorAI implements AI {
         {
             if(state.getNeutralHats().size() > 0){
                 Actor closest = this.findClosest(wizard, state.getNeutralHats());
+                double dist = this.dist(wizard, closest);
+                if(dist == 1.0){
+                    if(wizard.canCast(closest))
+                        wizard.castMagic(closest);
+                }
+                else{
+                    wizardPath = state.getPath(wizard,
+                            closest.getLocation(),
+                            pathWeight);
+                }
+            }
+            else if(state.getEnemyHats().size() > 0){
+                Actor closest = this.findClosest(wizard, state.getEnemyHats());
                 double dist = this.dist(wizard, closest);
                 if(dist == 1.0){
                     if(wizard.canCast(closest))
