@@ -5,6 +5,9 @@ public class CompetitorAI implements AI {
 	
 	private WeightComparator pathWeight = new CompetitorWeightComparator();
 	private boolean firstTurn = true;
+    private ArrayList<Node> wizardPath;
+    private ArrayList<Node> explorePoints;
+    private int exploreIndex;
 	
 	/**
 	 * You must have this function, all of the other functions in 
@@ -13,36 +16,18 @@ public class CompetitorAI implements AI {
 	@Override
 	public void takeTurn(AIGameState state) {
 		if(firstTurn) {
+            explorePoints = new ArrayList<Node>();
+            explorePoints.add(state.getNode(state.getWidth()/2, state.getHeight()/2));
+            explorePoints.add(state.getNode(state.getWidth()/2, 0));
+            explorePoints.add(state.getNode(0, state.getHeight()/2));
+            explorePoints.add(state.getNode(state.getWidth()/2, state.getHeight()-1));
+            explorePoints.add(state.getNode(state.getWidth()-1, state.getHeight()/2));
+            exploreIndex = 0;
 			takeFirstTurn(state);
 			firstTurn = false;
 		}
 		
-		//Get all of your actors
-		for(Actor a : state.getMyActors()) {
-			//Move your actor in a random direction
-			//Note: Only the last action is applied to the game, with the
-			//      exception of a.shout().
-			//      Example, if you call a.move(Node.DOWN) and then a.move(Node.UP)
-			//      and then a.shout(), a.move(Node.UP) and a.shout() will 
-			//      be executed and a.move(Node.DOWN) will be ignored. 
-			a.move((int)(Math.random() * 4));
-			
-			//Type casting
-			if(a instanceof Wizard) {
-				//You probably shouldn't try to cast magic on yourself...
-				if(((Wizard)a).canCast(a)) {
-					if(((Wizard)a).castMagic(a)) {
-						((Wizard)a).shout("**Ouch**");
-					}
-				}
-			}
-			
-			if(a.isStunned()) {
-				a.shout("**Ouch**");
-			}
-		}
-		
-		this.moveWizard(state);
+		this.wizardBrain(state);
 		this.moveBlockers(state);
 		this.moveCleaners(state);
 		this.moveScouts(state);
@@ -55,7 +40,7 @@ public class CompetitorAI implements AI {
 	 */
 	private void takeFirstTurn(AIGameState state) {
 		for(Actor a : state.getMyActors()) {
-			a.shout("Go Team!"); //Shout "Go Team!" for the first turn
+			a.shout("THIS. IS. HOGWAARRTTSS!!!!"); //Shout "Go Team!" for the first turn
 		}
 	}
 	
@@ -63,30 +48,46 @@ public class CompetitorAI implements AI {
 	 * Move or castMagic with your Wizard
 	 * @param state
 	 */
-	private void moveWizard(AIGameState state) {
+	private void wizardBrain(AIGameState state) {
 		Wizard wizard = state.getMyWizard();
+
+        //Can't see anything, so explore
+        if(state.getNeutralActors().size() == 0){
+            if(wizardPath == null){
+                if(wizard.getLocation().getX() == explorePoints.get(exploreIndex).getX() &&
+                   wizard.getLocation().getY() == explorePoints.get(exploreIndex).getY()){
+                    exploreIndex++;
+                }
+                if(exploreIndex >= explorePoints.size()) exploreIndex = 0;
+                wizardPath = state.getPath(wizard, explorePoints.get(exploreIndex), pathWeight);
+            }
+            if(wizard.canMove(wizard.getDirection(wizardPath)))
+                wizard.move(wizard.getDirection(wizardPath));
+            else
+                wizardPath = null;
+        }
 		
 		//Wizard Pathfinding
-		int moveDirection = wizard.getDirection(state.getNode(1, 1), pathWeight);
-		if(moveDirection != -1) { 
-			if(wizard.canMove(moveDirection)) {
-				wizard.move(moveDirection);
-				wizard.shout("Moving");
-			}
-		}
+//		int moveDirection = wizard.getDirection(state.getNode(1, 1), pathWeight);
+//		if(moveDirection != -1) {
+//			if(wizard.canMove(moveDirection)) {
+//				wizard.move(moveDirection);
+//				wizard.shout("Moving");
+//			}
+//		}
 		
 		//Iterate through all visible enemy actors
-		for(Actor e : state.getEnemyActors()) {
-			if(wizard.canCast( e)) {
-				wizard.castMagic(e);
-			}
-		}
+//		for(Actor e : state.getEnemyActors()) {
+//			if(wizard.canCast( e)) {
+//				wizard.castMagic(e);
+//			}
+//		}
 		
-		for(Actor e : state.getNeutralActors()) {
-			if(wizard.canCast(e)) {
-				wizard.castMagic(e);
-			}
-		}
+//		for(Actor e : state.getNeutralActors()) {
+//			if(wizard.canCast(e)) {
+//				wizard.castMagic(e);
+//			}
+//		}
 	}
 	
 	/**
