@@ -9,5 +9,6 @@ public class CompetitorWeightComparator implements WeightComparator
 	@Override
 	public double compare(Node arg0) {
 		return 0;
+
 	}
 }
